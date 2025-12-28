@@ -166,3 +166,9 @@ files/
 *.temp
 *~
 \#*\#
+
+# Project specific
+uploads/
+files/
+*.log
+*.out
