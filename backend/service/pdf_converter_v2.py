@@ -36,6 +36,9 @@ class ConversionConfig:
     chunk_size: int = 10  # 每批处理的页面数
     progress_update_interval: int = 10  # 进度更新间隔（页面数）
     
+    # 进度回调配置
+    progress_callback: Optional[callable] = None  # 进度回调函数
+    
 
 class PDFConverterV2:
     """
@@ -63,7 +66,8 @@ class PDFConverterV2:
         pdf_path: str,
         output_path: Optional[str] = None,
         start_page: int = 1,
-        end_page: Optional[int] = None
+        end_page: Optional[int] = None,
+        progress_callback: Optional[callable] = None
     ) -> Dict[str, Any]:
         """
         转换PDF文件为Markdown格式
@@ -106,7 +110,7 @@ class PDFConverterV2:
                 self.logger.info(f"实际处理页面: {actual_start}-{actual_end} (共{total_pages}页)")
 
                 # 分批次处理页面
-                markdown_content = self._process_pages_in_batches(doc, actual_start, actual_end)
+                markdown_content = self._process_pages_in_batches(doc, actual_start, actual_end, progress_callback)
                 
                 # 保存结果
                 self._save_output(markdown_content, output_path)
@@ -131,7 +135,6 @@ class PDFConverterV2:
         except Exception as e:
             self.logger.error(f"转换过程中发生错误: {e}")
             self.processing_stats['errors'].append(str(e))
-            raise
             return {
                 'success': False,
                 'error': str(e),
@@ -165,7 +168,8 @@ class PDFConverterV2:
         self, 
         doc: fitz.Document, 
         start_page: int, 
-        end_page: int
+        end_page: int,
+        progress_callback: Optional[callable] = None
     ) -> str:
         """分批次处理页面"""
         markdown_parts = []
@@ -184,6 +188,13 @@ class PDFConverterV2:
             processed = min(batch_end - start_page + 1, self.processing_stats['total_pages'])
             progress = (processed / (end_page - start_page + 1)) * 100
             self.logger.info(f"处理进度: {progress:.1f}% ({processed}/{end_page - start_page + 1}页)")
+            
+            # 调用进度回调函数
+            if progress_callback:
+                try:
+                    progress_callback(int(progress))
+                except Exception as e:
+                    self.logger.warning(f"进度回调调用失败: {e}")
         
         return '\n'.join(markdown_parts)
     

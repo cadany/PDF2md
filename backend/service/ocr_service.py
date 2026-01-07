@@ -9,7 +9,6 @@ try:
     from PIL import Image
     OCR_AVAILABLE = True
 except ImportError:
-    print("OCR库不可用。请安装paddleocr、opencv-python和Pillow以获得OCR功能。")
     OCR_AVAILABLE = False
 
 
@@ -20,13 +19,18 @@ class ProcessingConfig:
 class OCRService:
     def __init__(self, config: Optional[ProcessingConfig] = None):
         self.config = config or ProcessingConfig()
-        self.logger = self._setup_logger()
+        self.logger = logging.getLogger(f"service.{self.__class__.__name__}")
+        # 使用uvicorn的日志配置，不添加自定义处理器
+        
+        # 检查OCR库是否可用
+        if not OCR_AVAILABLE:
+            self.logger.info("OCR库不可用。请安装paddleocr、opencv-python和Pillow以获得OCR功能。")
         
         # 初始化OCR引擎（如果可用）
         self.ocr = None
         if OCR_AVAILABLE and self.config.ocr_service_type == "local":
             try:
-                print("初始化PaddleOCR...")
+                self.logger.info("初始化PaddleOCR...")
                 self.ocr = PaddleOCR(lang='ch',
                     # device="gpu",
                     # enable_hpi=True,
@@ -35,25 +39,11 @@ class OCRService:
                     use_doc_unwarping=False, # 指定不使用文本图像矫正模型
                     use_textline_orientation=False # 指定不使用文本行方向分类模型    
                     ) 
-                print("PaddleOCR初始化成功!")
+                self.logger.info("PaddleOCR初始化成功!")
             except Exception as e:
-                print(f"初始化PaddleOCR失败: {e}")
                 self.logger.error(f"初始化PaddleOCR失败: {e}")
     
-    def _setup_logger(self) -> logging.Logger:
-        """设置日志系统"""
-        logger = logging.getLogger("OCRService")
-        logger.setLevel(logging.INFO)
-        
-        if not logger.handlers:
-            console_handler = logging.StreamHandler()
-            console_formatter = logging.Formatter(
-                '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
-            )
-            console_handler.setFormatter(console_formatter)
-            logger.addHandler(console_handler)
-        
-        return logger
+
 
     def perform_ocr(self, image: Image.Image) -> str:
         """使用配置的服务对图像执行OCR"""
@@ -69,15 +59,15 @@ class OCRService:
         img_array = self._preprocess_image(image)
 
         # 使用PaddleOCR进行文字识别
-        print("开始OCR识别...")
+        self.logger.info("开始OCR识别...")
         result = self.ocr.predict(img_array)
-        print(f"OCR识别结果: {result}\n=============\n")
+        self.logger.debug(f"OCR识别结果: {result}")
 
         extracted_text = []
         # 提取识别结果中的文本
         if result and len(result) > 0 and 'rec_texts' in result[0]:
             texts = result[0]['rec_texts']
-            print(f"OCR识别文本: {texts}")
+            self.logger.debug(f"OCR识别文本: {texts}")
             for text in texts:
                 if text and len(text) > 0:
                     extracted_text.append(text)

@@ -127,7 +127,7 @@ class FileService:
         """
         # 扫描上传目录，查找匹配的文件
         for filename in os.listdir(self.upload_dir):
-            if filename.startswith(file_id):
+            if filename == f"{file_id}.pdf":
                 file_path = os.path.join(self.upload_dir, filename)
                 if os.path.isfile(file_path):
                     # 获取文件信息

@@ -88,8 +88,14 @@ class ConvertService:
             
             file_path = task['file_path']
             
-            # 使用PDF转换器进行转换
-            result = self.pdf_converter.convert_pdf(file_path)
+            # 定义进度回调函数
+            def progress_callback(progress: int):
+                """更新任务进度的回调函数"""
+                if task_id in self.tasks:
+                    self.tasks[task_id]['progress'] = min(progress, 99)  # 最大99%，完成时设为100%
+            
+            # 使用PDF转换器进行转换，传入进度回调
+            result = self.pdf_converter.convert_pdf(file_path, progress_callback=progress_callback)
             
             if result.get('success', False):
                 # 读取转换后的Markdown内容
@@ -106,12 +112,15 @@ class ConvertService:
                     'pages_processed': result['pages_processed'],
                     'tables_found': result['tables_found']
                 }
+                # 转换成功，进度设为100%
+                task['progress'] = 100
             else:
                 task['status'] = 'failed'
                 task['error'] = result.get('error', '转换失败')
+                # 转换失败，进度设为100%
+                task['progress'] = 100
             
             task['end_time'] = time.time()
-            task['progress'] = 100
             
         except Exception as e:
             task['status'] = 'failed'
@@ -130,7 +139,7 @@ class ConvertService:
         """
         if task_id not in self.tasks:
             raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
+                status_code=status.HTTP_200_OK,
                 detail=f"任务不存在: {task_id}"
             )
         
@@ -146,37 +155,3 @@ class ConvertService:
             'start_time': task['start_time'],
             'end_time': task['end_time']
         }
-
-    def convert_file_to_markdown(self, file_id: str) -> Dict[str, Any]:
-        """
-        同步转换文件（保留原有接口，但不推荐使用）
-        
-        Args:
-            file_id: 文件ID
-            
-        Returns:
-            Dict: 转换结果信息
-        """
-        # 启动异步任务并等待完成
-        task_id = self.start_convert_task(file_id)
-        
-        # 等待任务完成（简单轮询，不推荐在生产环境使用）
-        import time
-        max_wait_time = 300  # 5分钟超时
-        wait_interval = 1    # 1秒轮询间隔
-        
-        for _ in range(max_wait_time):
-            task_status = self.get_task_status(task_id)
-            if task_status['status'] in ['completed', 'failed']:
-                break
-            time.sleep(wait_interval)
-        
-        final_status = self.get_task_status(task_id)
-        
-        if final_status['status'] == 'completed':
-            return final_status['result']
-        else:
-            raise HTTPException(
-                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                detail=f"文件转换失败: {final_status.get('error', '未知错误')}"
-            )
