@@ -70,7 +70,7 @@ python backend/test/test_ocr_service.py
 
 docker build -t bid_checker:v0.1 .
 
-docker run -d --name bid_check  -p 38111:18080 -v `pwd`/data:/app/uploads bid_checker:v0.1
+docker run -d --name bid_check  -p 38111:18080 -v `pwd`/data:/app/uploads -v `pwd`/logs:/app/logs bid_checker:v0.1
 
 ## 贡献代码
 
