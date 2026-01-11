@@ -5,7 +5,6 @@ from fastapi.exceptions import RequestValidationError
 from starlette.exceptions import HTTPException as StarletteHTTPException
 import os
 import sys
-from dotenv import load_dotenv
 
 # 添加当前目录到Python路径
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
@@ -13,8 +12,6 @@ sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 from routes.file_routes import file_router
 from config import get_config
 
-# 加载环境变量
-load_dotenv()
 
 # 初始化配置
 config = get_config()
