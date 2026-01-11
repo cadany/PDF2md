@@ -1,9 +1,7 @@
 #!/bin/bash
 
-echo "Starting BiddingChecker Flask Application..."
+echo "Starting BiddingChecker API Application..."
 echo
-
-python3 --version
 
 # Prefer Python 3.12 venv on Unix-like systems if available
 if command -v python3.12 >/dev/null 2>&1; then
@@ -25,7 +23,7 @@ fi
 
 # Install dependencies
 echo "Installing dependencies..."
-pip install -r backend/requirements.txt
+pip install -r backend/requirements.txt -i https://pypi.tuna.tsinghua.edu.cn/simple
 
 # Check if .env file exists
 if [ ! -f "backend/.env" ]; then
@@ -37,6 +35,6 @@ if [ ! -f "backend/.env" ]; then
 fi
 
 # Start the application
-echo "Starting Flask server..."
+echo "Starting API server..."
 cd backend || exit 1
 python run.py

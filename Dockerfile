@@ -58,4 +58,4 @@ EXPOSE 18080
 #    CMD curl -f http://localhost:18080/docs || exit 1
 
 # Run the application with uvicorn
-CMD uvicorn run:app --host 0.0.0.0 --port 18080 --reload > /app/pdf2md.log 2>&1
+CMD ["uvicorn", "run:app", "--host", "0.0.0.0", "--port", "18080", "--log-config", "logging.conf","--proxy-headers","--forwarded-allow-ips","*"]

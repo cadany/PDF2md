@@ -66,6 +66,12 @@ python backend/test/test_ocr_service.py
    - `/api/file/convert2md/progress`：传入任务id，返回文件转换任务进度。
    - `/api/file/convert2md/result`：传入任务id，返回文件转换任务结果。
 
+## 部署
+
+docker build -t bid_checker:v0.1 .
+
+docker run -d --name bid_check  -p 38111:18080 -v `pwd`/data:/app/uploads bid_checker:v0.1
+
 ## 贡献代码
 
 欢迎提交Pull Request来贡献代码。在贡献代码之前，请先阅读并遵守项目的许可证。
