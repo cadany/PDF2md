@@ -9,30 +9,18 @@ ENV PYTHONPATH=/app
 # Set work directory
 WORKDIR /app
 
-# Install system dependencies for PaddleOCR and PDF processing using Chinese mirror source
+# Install system dependencies for PDF processing and OCR using Chinese mirror source
 RUN echo "deb http://mirrors.tuna.tsinghua.edu.cn/debian/ bookworm main" > /etc/apt/sources.list \
     && echo "deb http://mirrors.tuna.tsinghua.edu.cn/debian/ bookworm-updates main" >> /etc/apt/sources.list \
     && echo "deb http://mirrors.tuna.tsinghua.edu.cn/debian/ bookworm-backports main" >> /etc/apt/sources.list \
     && echo "deb http://mirrors.tuna.tsinghua.edu.cn/debian-security bookworm-security main" >> /etc/apt/sources.list \
     && apt-get update \
     && apt-get install -y --no-install-recommends \
-        pkg-config \
-        gcc \
-        g++ \
         poppler-utils \
-        libglib2.0-0 \
-        libsm6 \
-        libxext6 \
-        libxrender-dev \
         libgomp1 \
-        libgl1-mesa-glx \
-        libtiff5 \
         libjpeg62-turbo \
         libpng16-16 \
-        libopenblas-dev \
-        liblapack-dev \
-        libatlas-base-dev \
-        libhdf5-dev \
+        curl \
     && rm -rf /var/lib/apt/lists/* \
     && apt-get clean
 
