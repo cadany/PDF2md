@@ -58,6 +58,7 @@ class PDFConverterV2:
         }
         self.ocr_service = OCRService()
         self.logger = logging.getLogger(f"service.{self.__class__.__name__}")
+        self.logger.propagate = True
         # 使用uvicorn的日志配置，不添加自定义处理器
         self.logger.info("PDFConverterV2初始化完成")
     
@@ -471,7 +472,6 @@ class PDFConverterV2:
                     if pix.n < 5:
                         img_data = pix.tobytes("png")
                         pil_img = Image.open(io.BytesIO(img_data))
-                        # pil_img.save(f"../files/imgs/temp_img_{page_idx+1}_{img_index+1}.png")
                         ocr_text = self.ocr_service.perform_ocr(pil_img)
                         self.logger.info(f"OCR 结果: \n{ocr_text}")
                         image_markdown += f"```OCR 内容 [第{page_idx + 1}页, 图片{img_index + 1}]: \n{ocr_text} \n```\n"

@@ -35,8 +35,8 @@ class DOCXService:
         else:
             self.upload_dir = output_dir
             
-        self.logger = logging.getLogger("service.DOCXService")
-        # 使用uvicorn的日志配置，不添加自定义处理器
+        self.logger = logging.getLogger(f"service.{self.__class__.__name__}")
+        self.logger.propagate = True
         
         # 确保上传目录存在
         os.makedirs(self.upload_dir, exist_ok=True)

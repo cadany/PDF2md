@@ -27,7 +27,7 @@ class FileService:
             upload_dir: 上传文件存储目录，如果为None则从配置中读取
         """
         self.logger = logging.getLogger(f"service.{self.__class__.__name__}")
-        # 使用uvicorn的日志配置，不添加自定义处理器
+        self.logger.propagate = True
         
         # 获取配置
         self.config = get_config()
@@ -211,7 +211,7 @@ class FileService:
         self.logger.info("获取文件列表")
         
         files = []
-        
+        self.logger.info(f"列出上传目录")
         # 扫描上传目录中的所有文件
         for filename in os.listdir(self.upload_dir):
             file_path = os.path.join(self.upload_dir, filename)

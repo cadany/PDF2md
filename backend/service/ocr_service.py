@@ -28,6 +28,7 @@ class OCRService:
     def __init__(self, config: Optional[ProcessingConfig] = None):
         self.config = config or ProcessingConfig()
         self.logger = logging.getLogger(f"service.{self.__class__.__name__}")
+        self.logger.propagate = True
         # 使用uvicorn的日志配置，不添加自定义处理器
         
         # 检查OCR库是否可用
