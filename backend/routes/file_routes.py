@@ -205,7 +205,7 @@ async def start_convert_task(
     except Exception as e:
         self.logger.error(f"启动转换任务失败: {str(e)}")
         raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            status_code=status.HTTP_200_OK,
             detail=f"启动转换任务失败: {str(e)}"
         )
 
@@ -240,6 +240,6 @@ async def get_convert_task_result(
         raise
     except Exception as e:
         raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            status_code=status.HTTP_200_OK,
             detail=f"查询转换任务结果失败: {str(e)}"
         )
