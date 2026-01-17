@@ -5,12 +5,25 @@ from fastapi.exceptions import RequestValidationError
 from starlette.exceptions import HTTPException as StarletteHTTPException
 import os
 import sys
+import logging
+import logging.config
 
 # 添加当前目录到Python路径
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
 from routes.file_routes import file_router
 from config import get_config
+
+# 加载日志配置
+log_config_path = os.path.join(os.path.dirname(__file__), 'logging.conf')
+if os.path.exists(log_config_path):
+    logging.config.fileConfig(log_config_path)
+else:
+    # 如果配置文件不存在，则使用基本配置
+    logging.basicConfig(level=logging.INFO)
+
+# 获取日志记录器
+logger = logging.getLogger("uvicorn.access")
 
 
 # 初始化配置
@@ -43,14 +56,14 @@ async def log_requests(request, call_next):
     start_time = time.time()
     
     # 记录请求信息
-    print(f"Request: {request.method} {request.url.path} - Client: {request.client.host if request.client else 'unknown'}")
+    logger.info(f"Request: {request.method} {request.url.path} - Client: {request.client.host if request.client else 'unknown'}")
     
     try:
         response = await call_next(request)
         process_time = time.time() - start_time
         
         # 记录响应信息
-        print(f"Response: {request.method} {request.url.path} - Status: {response.status_code} - Time: {process_time:.2f}s")
+        logger.info(f"Response: {request.method} {request.url.path} - Status: {response.status_code} - Time: {process_time:.2f}s")
         
         # 添加处理时间到响应头
         response.headers["X-Process-Time"] = str(process_time)
@@ -58,7 +71,7 @@ async def log_requests(request, call_next):
         return response
     except Exception as exc:
         process_time = time.time() - start_time
-        print(f"Error: {request.method} {request.url.path} - Exception: {str(exc)} - Time: {process_time:.2f}s")
+        logger.error(f"Error: {request.method} {request.url.path} - Exception: {str(exc)} - Time: {process_time:.2f}s")
         raise
 
 # 全局异常处理
@@ -94,8 +107,8 @@ async def general_exception_handler(request, exc):
     import traceback
     
     # 记录详细错误信息到日志
-    print(f"Unhandled exception: {str(exc)}")
-    print(f"Traceback: {traceback.format_exc()}")
+    logger.error(f"Unhandled exception: {str(exc)}")
+    logger.error(f"Traceback: {traceback.format_exc()}")
     
     return JSONResponse(
         status_code=500,
@@ -132,8 +145,6 @@ if __name__ == '__main__':
     import uvicorn
     import logging
 
-    logger = logging.getLogger("uvicorn.server")  # 使用uvicorn的server logger
-    
     # 从配置中获取服务器设置
     server_config = config.get_server_config()
     host = server_config.get('host', '0.0.0.0')
@@ -141,15 +152,17 @@ if __name__ == '__main__':
     debug = server_config.get('debug', False)
     reload = server_config.get('reload', False)
     
-    logger.info(f"启动服务器: {host}:{port}")
-    logger.info(f"调试模式: {debug}")
-    logger.info(f"热重载: {reload}")
+    # 获取专门用于应用启动的日志记录器
+    startup_logger = logging.getLogger("uvicorn.error")
+    startup_logger.info(f"启动服务器: {host}:{port}")
+    startup_logger.info(f"调试模式: {debug}")
+    startup_logger.info(f"热重载: {reload}")
     
     uvicorn.run(
         app, 
         host=host, 
         port=port,
-        log_level="info",  # 使用uvicorn的默认日志配置
+        log_config=log_config_path,  # 使用统一的日志配置
         reload=reload
     )
 

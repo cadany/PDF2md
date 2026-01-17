@@ -70,7 +70,7 @@ python backend/test/test_ocr_service.py
 ```shell
 docker build -t pdf2md:v0.1 .
 
-docker run -d --name pdf2md  -p 38111:18080 -v `pwd`/data:/app/uploads -v `pwd`/logs:/app/logs pdf2md:v0.1
+docker run -d --name pdf2md  -p 38111:18080 -v `pwd`/data:/app/uploads -v `pwd`/logs:/app/logs pdf2md:v0.1 
 ```
 
 ## 贡献代码

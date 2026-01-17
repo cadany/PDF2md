@@ -1,5 +1,9 @@
 import fitz  # PyMuPDF
 import os
+import logging
+
+# 设置日志记录器
+logger = logging.getLogger(__name__)
 
 async def analyze_pdf_page(pdf_path, page_num):
     """分析PDF文件的指定页面"""
@@ -28,7 +32,7 @@ async def analyze_pdf_page(pdf_path, page_num):
     output_path = os.path.join(upload_dir, output_filename)
     pix.save(output_path)
 
-    print(text)
+    logger.debug(text)  # 使用debug级别记录文本内容，避免日志过于冗长
     
     # 分析结果
     result = {
@@ -49,8 +53,9 @@ async def analyze_pdf_page(pdf_path, page_num):
 if __name__ == "__main__":
     # 测试函数
     import sys
+    import json
     if len(sys.argv) != 3:
-        print("Usage: python pdf_page_analyze.py <pdf_path> <page_num>")
+        print("Usage: python pdf_page_analyze.py <pdf_path> <page_num>")  # 命令行工具的使用说明仍可使用print
         sys.exit(1)
     
     pdf_path = sys.argv[1]
@@ -58,8 +63,8 @@ if __name__ == "__main__":
     
     try:
         result = analyze_pdf_page(pdf_path, page_num)
-        print("PDF Analysis Result:")
-        print(json.dumps(result, indent=2, ensure_ascii=False))
+        print("PDF Analysis Result:")  # 命令行工具的输出仍可使用print
+        print(json.dumps(result, indent=2, ensure_ascii=False))  # 命令行工具的输出仍可使用print
     except Exception as e:
-        print(f"Error: {e}")
+        print(f"Error: {e}")  # 命令行工具的错误输出仍可使用print
         sys.exit(1)

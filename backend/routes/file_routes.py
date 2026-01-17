@@ -1,18 +1,15 @@
 from fastapi import APIRouter, HTTPException, Depends, UploadFile, File, status, Header, Path
 from pydantic import BaseModel, Field
 from typing import Dict, Any, Optional
+import logging
 from service.file_service import FileService
 from service.convert_service import ConvertService
 
+# 创建路由级别的日志记录器
+logger = logging.getLogger("route.file_routes")
+
 # 创建FastAPI路由器
 file_router = APIRouter(prefix="/file", tags=["file"])
-
-# 定义数据模型
-class FileUploadResponse(BaseModel):
-    message: str = Field(..., description="上传结果消息")
-    filename: str = Field(..., description="文件名")
-    file_id: str = Field(..., description="文件ID")
-    file_size: int = Field(..., description="文件大小")
 
 # 依赖注入
 file_service = FileService()
@@ -100,9 +97,11 @@ async def delete_file(
     文件删除接口
     """
     try:
+        logger.info(f"删除文件: {file_id}")
         result = file_service.delete_file(file_id)
         return result
     except Exception as e:
+        logger.error(f"删除文件失败: {file_id}, 错误: {str(e)}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"文件删除失败: {str(e)}"
@@ -123,15 +122,18 @@ async def get_file_info(
     文件信息查询接口
     """
     try:
+        logger.info(f"查询文件信息: {file_id}")
         file_info = file_service.get_file_info(file_id)
         if file_info:
             return file_info
         else:
+            logger.warning(f"文件不存在: {file_id}")
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail=f"文件ID {file_id} 不存在"
             )
     except Exception as e:
+        logger.error(f"查询文件信息失败: {file_id}, 错误: {str(e)}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"文件信息查询失败: {str(e)}"
@@ -203,7 +205,7 @@ async def start_convert_task(
     except HTTPException:
         raise
     except Exception as e:
-        self.logger.error(f"启动转换任务失败: {str(e)}")
+        logger.error(f"启动转换任务失败: {str(e)}")
         raise HTTPException(
             status_code=status.HTTP_200_OK,
             detail=f"启动转换任务失败: {str(e)}"
@@ -224,8 +226,10 @@ async def get_convert_task_result(
     查询转换任务结果
     """
     try:
+        logger.info(f"查询转换任务: {task_id}")
         task_status = convert_service.get_task_status(task_id)
-        
+        logger.info(f"查询转换任务结果: {task_status}")
+
         return ConvertTaskResultResponse(
             task_id=task_status['task_id'],
             file_id=task_status['file_id'],

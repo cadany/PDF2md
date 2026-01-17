@@ -5,7 +5,11 @@
 
 import os
 import json
+import logging
 from typing import Any, Optional, Dict
+
+# 配置日志记录器
+logger = logging.getLogger(__name__)
 
 # 全局配置实例
 _config_instance: Optional['Config'] = None
@@ -65,9 +69,9 @@ class Config:
             if config_file.endswith('.conf'):
                 self._load_from_conf(config_file)
             else:
-                print(f"不支持的配置文件格式: {config_file}")
+                logger.warning(f"不支持的配置文件格式: {config_file}")
         except Exception as e:
-            print(f"配置文件加载失败: {e}")
+            logger.error(f"配置文件加载失败: {e}")
     
     def _load_from_conf(self, config_file: str):
         """从key=value格式的配置文件加载配置"""
@@ -114,11 +118,11 @@ class Config:
                     
                     current_dict[keys[-1]] = value
                 else:
-                    print(f"配置文件第{line_num}行格式错误: {line}")
+                    logger.warning(f"配置文件第{line_num}行格式错误: {line}")
         
         # 深度合并配置
         self._merge_config(self._config, config_dict)
-        print(f"配置文件加载成功: {config_file}")
+        logger.info(f"配置文件加载成功: {config_file}")
     
     def _merge_config(self, base: Dict[str, Any], update: Dict[str, Any]):
         """深度合并配置字典"""
@@ -163,7 +167,7 @@ class Config:
                 with open(config_file, 'w', encoding='utf-8') as f:
                     json.dump(self._config, f, indent=2, ensure_ascii=False)
             except Exception as e:
-                print(f"保存配置文件失败: {e}")
+                logger.error(f"保存配置文件失败: {e}")
     
     def get_server_config(self) -> Dict[str, Any]:
         """获取服务器配置"""
